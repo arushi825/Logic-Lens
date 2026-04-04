@@ -1,0 +1,9 @@
+{
+  "name": "logic-lens",
+  "version": "0.1.0",
+  "description": "Logic Lens — Algorithm Visualizer Hackathon Project",
+  "main": "index.html",
+  "scripts": {
+    "start": "node -e \"console.log('Open index.html in your browser to run Logic Lens')\""
+  }
+}
