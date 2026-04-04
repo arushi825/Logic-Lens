@@ -1,448 +1,631 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logic Lens — Algorithm Visualizer</title>
-    <meta name="description" content="Logic Lens: Visualize, debug, and optimize algorithms step by step.">
-
-    <!-- Fonts -->
+    <title>Logic Lens - Physical Visualization Engine</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Our Styles -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-
-    <!-- TODO: Add Three.js for particle background in Phase 2 -->
-    <!-- TODO: Add Barba.js + GSAP for page transitions in Phase 2 -->
-    <!-- TODO: Add Locomotive Scroll + AOS animations in Phase 2 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hover.css/2.3.1/css/hover-min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/locomotive-scroll@beta/bundled/locomotive-scroll.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: '#030305',
+                        panel: 'rgba(18, 18, 24, 0.65)',
+                        border: 'rgba(255, 255, 255, 0.08)',
+                        accentBlue: '#00f0ff',
+                        accentPurple: '#b026ff',
+                        accentGreen: '#00ff9d',
+                        accentRed: '#ff3366'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://unpkg.com/@barba/core"></script>
+    <script src="https://unpkg.com/@rive-app/canvas@2.7.0"></script>
 </head>
-<body>
 
-    <!-- ======================================================
-         HEADER
-    ====================================================== -->
-    <header class="app-header">
-        <div class="logo">
-            <button id="btn-home">
-                <i class="fa-solid fa-arrow-left"></i> Home
+<body>
+    <div id="three-canvas-container" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; pointer-events: none;"></div>
+    <div class="background-effects">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+        <div class="glow-orb orb-3"></div>
+    </div>
+    
+    <div data-barba="wrapper">
+      <div data-barba="container" data-barba-namespace="home">
+        <header class="app-header glass-nav">
+        <div class="logo" style="display: flex; align-items: center; gap: 1rem;">
+            <button id="btn-home" class="btn secondary" style="background: transparent; border: none; font-size: 0.95rem; color: var(--text-secondary); cursor: pointer; display: none;">
+                <i class="fa-solid fa-arrow-left" style="margin-right: 0.5rem;"></i> Home
             </button>
-            <div style="display:flex;align-items:center;gap:0.75rem;">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#g1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M2 17L12 22L22 17" stroke="url(#g1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M2 12L12 17L22 12" stroke="url(#g1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#paint0_linear)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M2 17L12 22L22 17" stroke="url(#paint0_linear)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M2 12L12 17L22 12" stroke="url(#paint0_linear)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     <defs>
-                        <linearGradient id="g1" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
-                            <stop stop-color="#3b82f6"/><stop offset="1" stop-color="#8b5cf6"/>
+                        <linearGradient id="paint0_linear" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                            <stop stop-color="#3b82f6" />
+                            <stop offset="1" stop-color="#8b5cf6" />
                         </linearGradient>
                     </defs>
                 </svg>
-                <h1>Logic Lens</h1>
+                <h1>Logic Lens <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 400; margin-left: 10px;">Physical Engine</span></h1>
             </div>
         </div>
-        <div class="header-right">
-            <div class="badge">Understand Code Better</div>
-            <div class="badge" style="background:rgba(16,185,129,0.12);color:#6ee7b7;border-color:rgba(16,185,129,0.25);">Visualize Better</div>
+        <div class="header-right" style="display: flex; gap: 1rem; align-items: center;">
+            <div class="badge" id="lang-badge">Auto-Detecting Language...</div>
+            <div class="badge" style="background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border-color: rgba(16, 185, 129, 0.3);">AI Connect</div>
         </div>
     </header>
 
-    <!-- ======================================================
-         HOME SCREEN
-    ====================================================== -->
-    <section class="hero-section" id="home-screen">
-        <div class="hero-header-group">
-            <div class="hero-eyebrow">
-                <span class="eyebrow-dot"></span> Algorithm Visualization Engine
-            </div>
-            <h1 class="hero-title">How do you want to<br><span class="hero-title-highlight">analyze your code?</span></h1>
-            <p class="hero-subtitle">Choose a mode to begin your deep-dive into algorithm mechanics</p>
-        </div>
-
-        <div class="feature-cards-grid">
+    <section class="hero-section" id="home-screen" data-scroll-section style="min-height: calc(100vh - 80px); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem;">
+        <h1 class="hero-title" data-aos="zoom-in" data-aos-duration="1000" style="margin-bottom: 3rem;">How do you want to analyze your code?</h1>
+        
+        <div class="feature-cards-grid" style="display: flex; gap: 2rem; max-width: 1200px; width: 100%; justify-content: center;">
             <!-- Explain My Code -->
-            <div class="fcard fcard--blue" id="card-explain">
-                <div class="fcard__icon-ring"><i class="fa-solid fa-code"></i></div>
-                <div class="fcard__label">Mode 01</div>
-                <h3 class="fcard__title">Explain My Code</h3>
-                <p class="fcard__desc">Step through algorithm execution visually. Watch every pointer, comparison, and memory operation unfold.</p>
-                <div class="fcard__tags">
-                    <span class="ftag">Step-by-Step</span>
-                    <span class="ftag">Traversal</span>
-                    <span class="ftag">Complexity</span>
-                </div>
-                <div class="fcard__cta"><span>Launch Engine</span><i class="fa-solid fa-arrow-right"></i></div>
+            <div class="feature-card hvr-float-shadow" id="card-explain" data-tilt data-tilt-max="5" style="flex: 1; background: rgba(18, 18, 24, 0.65); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 2rem; cursor: pointer; display: flex; flex-direction: column; gap: 1rem; backdrop-filter: blur(16px); position: relative; overflow: hidden; border-top: 4px solid var(--accent-blue);">
+                <div class="glow-orb" style="width: 150px; height: 150px; background: var(--accent-blue); opacity: 0.15; position: absolute; top: -50px; right: -50px; filter: blur(50px);"></div>
+                <i class="fa-solid fa-code" style="font-size: 2.5rem; color: var(--accent-blue);"></i>
+                <h3 style="font-size: 1.5rem; font-weight: 600; color: white; margin-top: 1rem;">Explain My Code</h3>
+                <p style="color: var(--text-muted); line-height: 1.6;">Upload any data structure or traverse live execution sequences step-by-step with deep mechanical insights into time and space limits.</p>
             </div>
 
             <!-- Analyze My Bug -->
-            <div class="fcard fcard--red" id="card-analyze">
-                <div class="fcard__icon-ring"><i class="fa-solid fa-bug"></i></div>
-                <div class="fcard__label">Mode 02</div>
-                <h3 class="fcard__title">Analyze My Bug</h3>
-                <p class="fcard__desc">Paste buggy code and get an instant diagnosis. See exactly what went wrong, why, and the corrected version.</p>
-                <div class="fcard__tags">
-                    <span class="ftag">Bug Detection</span>
-                    <span class="ftag">Live Trace</span>
-                    <span class="ftag">Auto-Fix</span>
-                </div>
-                <div class="fcard__cta"><span>Detect Bugs</span><i class="fa-solid fa-arrow-right"></i></div>
+            <div class="feature-card hvr-float-shadow" id="card-analyze" data-tilt data-tilt-max="5" style="flex: 1; background: rgba(18, 18, 24, 0.65); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 2rem; cursor: pointer; display: flex; flex-direction: column; gap: 1rem; backdrop-filter: blur(16px); position: relative; overflow: hidden; border-top: 4px solid var(--accent-red);">
+                <div class="glow-orb" style="width: 150px; height: 150px; background: var(--accent-red); opacity: 0.15; position: absolute; top: -50px; right: -50px; filter: blur(50px);"></div>
+                <i class="fa-solid fa-bug" style="font-size: 2.5rem; color: var(--accent-red);"></i>
+                <h3 style="font-size: 1.5rem; font-weight: 600; color: white; margin-top: 1rem;">Analyze My Bug</h3>
+                <p style="color: var(--text-muted); line-height: 1.6;">Watch algorithms fail dynamically. See the exact moment memory shifts incorrectly, paths break, loops become infinite, and watch live fixes.</p>
             </div>
 
             <!-- Optimize My Code -->
-            <div class="fcard fcard--green" id="card-optimize">
-                <div class="fcard__icon-ring"><i class="fa-solid fa-gauge-high"></i></div>
-                <div class="fcard__label">Mode 03</div>
-                <h3 class="fcard__title">Optimize My Code</h3>
-                <p class="fcard__desc">Race brute force vs optimized algorithms. Watch operation counters diverge exponentially in real-time.</p>
-                <div class="fcard__tags">
-                    <span class="ftag">Benchmarking</span>
-                    <span class="ftag">Dual Trace</span>
-                    <span class="ftag">O(n) Proof</span>
-                </div>
-                <div class="fcard__cta"><span>Race Algorithms</span><i class="fa-solid fa-arrow-right"></i></div>
+            <div class="feature-card hvr-float-shadow" id="card-optimize" data-tilt data-tilt-max="5" style="flex: 1; background: rgba(18, 18, 24, 0.65); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 2rem; cursor: pointer; display: flex; flex-direction: column; gap: 1rem; backdrop-filter: blur(16px); position: relative; overflow: hidden; border-top: 4px solid var(--accent-green);">
+                <div class="glow-orb" style="width: 150px; height: 150px; background: var(--accent-green); opacity: 0.15; position: absolute; top: -50px; right: -50px; filter: blur(50px);"></div>
+                <i class="fa-solid fa-gauge-high" style="font-size: 2.5rem; color: var(--accent-green);"></i>
+                <h3 style="font-size: 1.5rem; font-weight: 600; color: white; margin-top: 1rem;">Optimize My Code</h3>
+                <p style="color: var(--text-muted); line-height: 1.6;">Pit brute force against optimized approaches. Track real-time independent operation counters splitting exponentially on simultaneous canvases.</p>
             </div>
         </div>
     </section>
 
-    <!-- ======================================================
-         VIEWS CONTAINER (all dashboards)
-    ====================================================== -->
-    <div id="views-container" style="display:none;">
+    <!-- App Views Container (hidden initially) -->
+    <div id="views-container" style="display: none; height: calc(100vh - 80px); width: 100%; overflow: hidden;">
 
-        <!-- ================================================
-             DASHBOARD 1: EXPLAIN MY CODE
-        ================================================ -->
-        <main id="dashboard-explain" class="dashboard unified-dashboard" style="display:none;">
+    <main id="dashboard-explain" class="dashboard unified-dashboard" style="display: grid; grid-template-columns: 380px 1fr; width: 100%; height: 100%; overflow: hidden;">
+        <!-- LEFT: Universal Input & Diff Panel -->
+        <section class="panel input-panel" data-scroll data-scroll-speed="0.05" style="display: flex; flex-direction: column; overflow: hidden; min-width: 0;">
 
-            <!-- LEFT: Input Panel -->
-            <section class="panel input-panel" style="display:flex;flex-direction:column;">
-                <div class="input-header">
-                    <h2>Algorithm Select</h2>
-                    <button class="btn primary" id="magic-analyze-btn">
+            <div class="input-header"
+                style="padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.2);">
+                <h2 style="font-size: 0.95rem; font-weight: 500; color: var(--text-primary);">Problem / Code Input</h2>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <input type="file" id="unb-upload" accept=".unb" style="font-size: 0.8rem; color: var(--text-muted); outline: none;" title="Upload custom .unb animation">
+                    <button class="btn primary hvr-float-shadow" id="magic-analyze-btn">
                         <i class="fa-solid fa-code"></i> Analyze Logic
                     </button>
                 </div>
+            </div>
 
-                <div class="code-editor-container">
-                    <details class="algo-collapsible" open>
-                        <summary class="btn secondary" style="width:100%;justify-content:center;">
-                            <i class="fa-solid fa-list"></i> Choose Algorithm
-                        </summary>
-                        <div class="collapsible-content">
-                            <select id="expl-alg-select" class="logic-select" size="5">
-                                <optgroup label="Data Structures">
-                                    <option value="bst" selected>Binary Search Tree</option>
-                                </optgroup>
-                                <optgroup label="Sorting">
-                                    <option value="quicksort">QuickSort Partition</option>
-                                </optgroup>
-                                <optgroup label="Graph Algorithms">
-                                    <option value="dijkstra">Dijkstra Shortest Path</option>
-                                </optgroup>
-                                <!-- TODO: Add Merge Sort, Heap Sort, DFS, BFS after mid-eval -->
-                            </select>
-                        </div>
-                    </details>
-                </div>
-
-                <!-- Approaches Shelf -->
-                <div id="approaches-shelf" class="approaches-shelf hidden">
-                    <div style="padding:0.6rem 1rem;font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid rgba(255,255,255,0.05);">
-                        Active Algorithm
+            <div class="code-editor-container"
+                style="padding: 1rem; flex: 0 0 auto; background: #08080A; border-bottom: 1px solid var(--border-color);">
+                <details class="algo-collapsible">
+                    <summary class="collapsible-trigger btn secondary" style="width: 100%; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); cursor: pointer; border-radius: 8px; font-size: 1rem; padding: 0.8rem;"><i class="fa-solid fa-list"></i> Show Algorithms</summary>
+                    <div class="collapsible-content" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05);">
+                        <select id="expl-alg-select" class="logic-select" size="8" style="width: 100%; padding: 0.8rem 1rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--text-primary); font-family: var(--font-mono); font-size: 0.95rem; outline: none; cursor: pointer;">
+                            <optgroup label="Core Algorithms">
+                                <option value="bst">Binary Search Trees</option>
+                                <option value="dijkstra">Dijkstra's Pathfinding</option>
+                                <option value="dp_fib">DP Memoization Proof</option>
+                            </optgroup>
+                            <optgroup label="Flawed Architectures">
+                                <option value="quicksort">QuickSort (Legacy Partitions)</option>
+                                <option value="dfs_buggy">DFS Infinite Loop</option>
+                                <option value="bfs_optimal">BFS Sub-Optimal Queue</option>
+                                <option value="bubblesort_bug">BubbleSort Bounds Off</option>
+                            </optgroup>
+                            <optgroup label="New Standard Sorts">
+                                <option value="llx_mergesort">Merge Sort</option>
+                                <option value="llx_quicksort">Quick Sort (Full)</option>
+                                <option value="llx_heapsort">Heap Sort</option>
+                                <option value="llx_selectionsort">Selection Sort</option>
+                                <option value="llx_insertionsort">Insertion Sort</option>
+                                <option value="llx_bubblesort">Bubble Sort (Correct)</option>
+                            </optgroup>
+                            <optgroup label="New Non-Comparison Sorts">
+                                <option value="llx_countingsort">Counting Sort</option>
+                                <option value="llx_radixsort">Radix Sort</option>
+                                <option value="llx_bucketsort">Bucket Sort</option>
+                            </optgroup>
+                        </select>
                     </div>
-                    <div class="approaches-list" id="approaches-list"></div>
-                </div>
+                </details>
+            </div>
 
-                <!-- Code Source -->
-                <div class="panel-header" style="margin-top:auto;">
-                    <h2>Implementation Source</h2>
+            <!-- Alternative Approaches Shelf -->
+            <div id="approaches-shelf" class="approaches-shelf hidden">
+                <div
+                    style="padding: 0.8rem 1.5rem; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(255,255,255,0.02);">
+                    Discovered Approaches</div>
+                <div class="approaches-list" id="approaches-list"
+                    style="display: flex; gap: 1rem; padding: 1rem 1.5rem; overflow-x: auto;">
+                    <!-- Cards injected here -->
                 </div>
-                <div class="editor-container" style="flex:1;">
-                    <div class="code-lines-container" id="code-lines-container">
-                        <div style="padding:2rem;color:var(--text-muted);font-style:italic;text-align:center;">
-                            Select an algorithm and click Analyze Logic
-                        </div>
+            </div>
+
+            <!-- Implementation Source -->
+            <div class="panel-header"
+                style="border-top: 1px solid var(--border-color); margin-top: auto; display: flex; justify-content: space-between;">
+                <h2>Implementation Source</h2>
+                <div class="diff-toggle-container hidden" id="diff-toggle-box"
+                    style="font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted);">
+                    <input type="checkbox" id="diff-toggle" style="accent-color: var(--accent-purple);">
+                    <label for="diff-toggle" style="cursor: pointer;">Show Live Diff</label>
+                </div>
+            </div>
+            <div class="editor-container" style="flex: 1;">
+                <div class="code-lines-container" id="code-lines-container">
+                    <div style="padding: 2rem; color: var(--text-muted); font-style: italic; text-align: center;">
+                        Awaiting instructions...</div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- RIGHT: The Universal Visualizer (STRICT HIERARCHY) -->
+        <section class="panel logic-panel" style="display: flex; flex-direction: column; overflow: hidden; min-width: 0;">
+
+            <!-- Status Header -->
+            <div class="panel-header" style="flex: 0 0 auto;">
+                <h2>Physical Animator Engine</h2>
+                <div class="status-indicator">
+                    <span class="dot" id="global-status-dot"></span>
+                    <span class="status-text" id="global-status-text">Idle</span>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="loading-state hidden" style="flex:1;">
+                <div class="spinner"></div>
+                <p>Establishing physical geometry metrics and traversal mappings...</p>
+                <div class="progress-bar"
+                    style="width: 250px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-top: 1rem;">
+                    <div class="progress"
+                        style="width: 45%; height: 100%; background: var(--accent-purple); animation: loadPulse 2s infinite ease-in-out;">
                     </div>
                 </div>
-            </section>
+            </div>
 
-            <!-- RIGHT: Visualizer -->
-            <section class="panel logic-panel" style="display:flex;flex-direction:column;">
-                <div class="panel-header" style="flex:0 0 auto;">
-                    <h2>Physical Animator Engine</h2>
-                    <div class="status-indicator">
-                        <span class="dot" id="global-status-dot"></span>
-                        <span class="status-text" id="global-status-text">Idle</span>
+            <!-- Strict Hierarchical Container -->
+            <div id="animator-container" class="animator-container hidden"
+                style="flex: 1; display: flex; flex-direction: column; overflow: hidden; height: 100%;">
+
+                <!-- TOP LAYER: Tab Selection & Isolated Animation Canvas exclusively -->
+                <div
+                    style="flex: 1 1 250px; min-height: 250px; display: flex; flex-direction: column; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05); position: relative;">
+
+                    <div class="visual-tabs"
+                        style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.2); z-index: 10; flex-shrink: 0;">
+                        <button class="tab-btn active" data-tab="execution"><i class="fa-solid fa-microchip"></i>
+                            Execution</button>
+                        <button class="tab-btn" data-tab="time"><i class="fa-solid fa-stopwatch"></i> Time Complexity
+                            Proof</button>
+                        <button class="tab-btn" data-tab="space"><i class="fa-solid fa-memory"></i> Space
+                            Complexity</button>
+                    </div>
+
+                    <div class="visual-canvas-area" id="visual-canvas-area"
+                        style="flex: 1 1 auto; height: 100%; position: relative; overflow-y: auto; overflow-x: auto; background: #000;">
+                        <!-- Tab Content Dynamically Mounted Here by app.js -->
                     </div>
                 </div>
 
-                <!-- Loading -->
-                <div id="loading-state" class="loading-state hidden" style="flex:1;">
-                    <div class="spinner"></div>
-                    <p>Building execution trace...</p>
-                </div>
+                <!-- MIDDLE LAYER: Deep Detailed Explanations exclusively -->
+                <div
+                    style="flex: 0 0 auto; max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; padding: 1.5rem; background: rgba(10, 15, 30, 0.95); min-height: 140px; box-shadow: 0 -10px 20px rgba(0,0,0,0.3); z-index: 20;">
+                    <div style="display: flex; gap: 2rem; align-items: flex-start; max-width: 100%;">
+                        <div class="step-badge" id="step-badge"
+                            style="flex: 0 0 80px; text-align: center; color: var(--accent-blue); background: rgba(59, 130, 246, 0.1); padding: 0.5rem; border-radius: 6px; font-weight: 600; border: 1px solid rgba(59,130,246,0.3); box-shadow: 0 0 10px rgba(59,130,246,0.2);">
+                            Step 1</div>
 
-                <!-- Animator -->
-                <div id="animator-container" class="animator-container hidden">
-                    <!-- Visual Canvas -->
-                    <div class="visual-canvas-area" id="visual-canvas-area"></div>
-
-                    <!-- Explanation -->
-                    <div style="flex:0 0 auto;padding:1.25rem 1.5rem;background:rgba(10,15,30,0.95);border-top:1px solid rgba(255,255,255,0.05);display:flex;gap:1.5rem;align-items:flex-start;">
-                        <div class="step-badge" id="step-badge">Step 1</div>
-                        <div style="flex:1;display:flex;flex-direction:column;gap:0.75rem;">
-                            <div>
-                                <span style="font-size:0.7rem;text-transform:uppercase;color:#94a3b8;letter-spacing:1.5px;font-weight:700;">What is happening</span>
-                                <p id="explanation-what" style="color:white;font-size:1rem;line-height:1.5;margin:0.25rem 0 0;">Initializing...</p>
+                        <div style="display: flex; flex-direction: column; flex: 1; gap: 1rem;">
+                            <!-- WHAT block -->
+                            <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                                <span
+                                    style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 700; letter-spacing: 1.5px;">What
+                                    is happening</span>
+                                <p id="explanation-what"
+                                    style="color: white; font-size: 1.1rem; line-height: 1.6; font-weight: 400; margin: 0;">
+                                    Code logic initializing root structural pointers...</p>
                             </div>
-                            <div>
-                                <span style="font-size:0.7rem;text-transform:uppercase;color:#c4b5fd;letter-spacing:1.5px;font-weight:700;">Why it matters</span>
-                                <p id="explanation-why" style="color:#e2e8f0;font-size:0.88rem;line-height:1.5;border-left:3px solid #8b5cf6;padding-left:10px;margin:0.25rem 0 0;background:rgba(139,92,246,0.05);padding:4px 10px;border-radius:0 4px 4px 0;"></p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Playback -->
-                    <div style="flex:0 0 auto;padding:1.25rem 1.5rem 2rem;background:#000;border-top:1px solid rgba(255,255,255,0.05);">
-                        <div class="playback-bar">
-                            <div class="timeline-container">
-                                <div class="timeline-track" id="timeline-track">
-                                    <div class="timeline-progress" id="timeline-progress"></div>
-                                </div>
-                            </div>
-                            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.75rem;">
-                                <div class="speed-control">
-                                    <label for="speed-slider"><i class="fa-solid fa-gauge-high"></i> <span id="speed-val">1.0x</span></label>
-                                    <input type="range" id="speed-slider" min="0.2" max="3.0" step="0.1" value="1.0" style="width:90px;accent-color:var(--accent-blue);">
-                                </div>
-                                <div class="playback-controls">
-                                    <button class="control-btn" id="btn-restart" title="Restart"><i class="fa-solid fa-backward-step"></i></button>
-                                    <button class="control-btn" id="btn-prev" title="Step Back"><i class="fa-solid fa-play fa-flip-horizontal"></i></button>
-                                    <button class="control-btn primary-control" id="btn-play" title="Play/Pause" style="width:42px;height:42px;border-radius:50%;">
-                                        <i class="fa-solid fa-play" id="play-icon"></i>
-                                    </button>
-                                    <button class="control-btn" id="btn-next" title="Step Forward"><i class="fa-solid fa-play"></i></button>
-                                </div>
+                            <!-- WHY block -->
+                            <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                                <span
+                                    style="font-size: 0.75rem; text-transform: uppercase; color: #c4b5fd; font-weight: 700; letter-spacing: 1.5px;">Why
+                                    it is necessary</span>
+                                <p id="explanation-why"
+                                    style="color: #e2e8f0; font-size: 0.95rem; line-height: 1.6; font-style: italic; border-left: 3px solid #8b5cf6; padding-left: 12px; margin: 0; background: rgba(139, 92, 246, 0.05); border-radius: 0 4px 4px 0; padding-top: 4px; padding-bottom: 4px;">
+                                    Memory safety requires null pointer initialization to avoid cascading faults.</p>
                             </div>
                         </div>
                     </div>
                 </div>
-            </section>
-        </main>
 
-        <!-- ================================================
-             DASHBOARD 2: ANALYZE MY BUG
-        ================================================ -->
-        <main id="dashboard-analyze" class="dashboard" style="display:none;height:100%;flex-direction:column;overflow-y:auto;overflow-x:hidden;">
-            <div style="padding:2rem;display:flex;flex-direction:column;gap:2rem;max-width:1300px;margin:0 auto;width:100%;">
+                <!-- BOTTOM LAYER: Timeline & Playback exclusively -->
+                <div
+                    style="flex: 0 0 auto; display: flex; flex-direction: column; padding: 1.5rem 1.5rem 3rem 1.5rem; background: #000; border-top: 1px solid rgba(255,255,255,0.05); z-index: 20;">
+                    <div class="playback-bar" style="margin: 0; padding-bottom: 1rem;">
+                        <div class="timeline-container">
+                            <div class="timeline-track" id="timeline-track">
+                                <div class="timeline-progress" id="timeline-progress"></div>
+                            </div>
+                        </div>
 
-                <!-- Input -->
-                <div style="background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:2rem;display:flex;flex-direction:column;gap:1rem;">
+                        <div class="playback-controls-row"
+                            style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.8rem;">
+                            <div class="speed-control"
+                                style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); font-size: 0.85rem;">
+                                <label for="speed-slider"><i class="fa-solid fa-gauge-high"></i> <span
+                                        id="speed-val">1.0x</span></label>
+                                <input type="range" id="speed-slider" min="0.2" max="3.0" step="0.1" value="1.0"
+                                    style="width: 100px; accent-color: var(--accent-blue);">
+                            </div>
+
+                            <div class="playback-controls">
+                                <button class="control-btn" id="btn-restart" title="Restart">
+                                    <i class="fa-solid fa-backward-step"></i>
+                                </button>
+                                <button class="control-btn" id="btn-prev" title="Step Back">
+                                    <i class="fa-solid fa-play fa-flip-horizontal"></i>
+                                </button>
+                                <button class="control-btn primary-control" id="btn-play" title="Play/Pause"
+                                    style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+                                    <i class="fa-solid fa-play" id="play-icon"></i>
+                                </button>
+                                <button class="control-btn" id="btn-next" title="Step Forward">
+                                    <i class="fa-solid fa-play"></i>
+                                </button>
+                                <button class="control-btn" id="btn-fullscreen-main" title="Toggle Fullscreen">
+                                    <i class="fa-solid fa-expand"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+
+        
+        <!-- Dashboard Analyze Bug -->
+        <main id="dashboard-analyze" class="dashboard" style="display: none; height: 100%; flex-direction: column; overflow-y: auto; overflow-x: hidden;">
+            <div style="padding: 2rem; display: flex; flex-direction: column; gap: 2rem; max-width: 1400px; margin: 0 auto; width: 100%;">
+                
+                <!-- HEADER & LOCAL INPUT -->
+                <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 2rem; display: flex; flex-direction: column; gap: 1rem;">
                     <div>
-                        <h2 style="color:var(--accent-red);font-size:1.75rem;margin:0;">
-                            <i class="fa-solid fa-bug"></i> Analyze My Bug
-                        </h2>
-                        <p style="color:var(--text-muted);margin-top:0.5rem;font-size:0.95rem;">
-                            Paste your buggy code below. The engine will detect the logical violation and show you the fix.
-                        </p>
+                        <h2 style="color: var(--accent-red); font-size: 2rem; margin: 0;"><i class="fa-solid fa-bug"></i> Analyze Local Code</h2>
+                        <p style="color: var(--text-muted); margin-top: 0.5rem; font-size: 1rem;">Paste your flawed source code below. The local engine will parse, detect logic errors, and compare it strictly to internal heuristics without external APIs.</p>
                     </div>
-                    <textarea id="buggy-code-input"
-                        style="width:100%;height:180px;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#abb2bf;font-family:var(--font-mono);font-size:0.9rem;padding:1rem;outline:none;resize:vertical;"
-                        placeholder="Paste buggy code here (e.g. a BFS using pop(0), a DFS missing return, or a BubbleSort with wrong bounds)..."></textarea>
-                    <div style="display:flex;align-items:center;gap:1rem;">
-                        <button id="btn-parse-bug" class="btn" style="background:rgba(239,68,68,0.15);border:1px solid var(--accent-red);color:white;padding:0.75rem 2rem;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.95rem;font-family:var(--font-sans);">
-                            <i class="fa-solid fa-magnifying-glass"></i> Detect Bug
-                        </button>
-                        <span id="parse-status-msg" style="color:#6ee7b7;font-size:0.9rem;display:none;"></span>
+                    <textarea id="buggy-code-input" style="width: 100%; height: 200px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #abb2bf; font-family: var(--font-mono); font-size: 0.95rem; padding: 1rem; outline: none; resize: vertical;" placeholder="Paste your buggy logic (e.g. def bfs(graph, start)...)"></textarea>
+                    
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <button id="btn-parse-bug" class="btn primary" style="background: rgba(239, 68, 68, 0.2); border: 1px solid var(--accent-red); color: white; padding: 0.75rem 2rem; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem;">Detect Bugs Locally</button>
+                        <span id="parse-status-msg" style="color: #6ee7b7; font-size: 0.95rem; display: none;">Parsing heuristics...</span>
                     </div>
                 </div>
 
-                <!-- Bug Report -->
-                <div id="bug-report-zone" style="display:none;flex-direction:column;gap:1.5rem;">
-                    <!-- Violation header -->
-                    <div style="background:rgba(239,68,68,0.05);padding:1.5rem;border-left:4px solid var(--accent-red);border-radius:0 8px 8px 0;color:#e2e8f0;line-height:1.6;">
-                        <h3 style="color:#fca5a5;font-size:1.15rem;margin-top:0;margin-bottom:1rem;">
-                            <i class="fa-solid fa-triangle-exclamation"></i> Logical Violation Detected
-                        </h3>
-                        <p style="margin:0.25rem 0;"><strong style="color:#fff;">Line:</strong>
-                            <span id="bug-line-no" style="font-family:var(--font-mono);color:#fca5a5;font-weight:bold;">--</span>
-                        </p>
-                        <p style="margin:0.25rem 0;"><strong style="color:#fff;">Offending Code:</strong><br>
-                            <code id="bug-line-code" style="display:inline-block;margin-top:0.4rem;background:rgba(0,0,0,0.5);padding:0.4rem 0.9rem;border-radius:4px;color:#fca5a5;font-size:0.95rem;"></code>
-                        </p>
+                <!-- BUG REPORT MESH -->
+                <div id="bug-report-zone" style="display: none; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 2rem; flex-direction: column; gap: 2rem;">
+                    
+                    <div style="background: rgba(239, 68, 68, 0.05); padding: 1.5rem; border-left: 4px solid var(--accent-red); border-radius: 0 8px 8px 0; color: #e2e8f0; line-height: 1.6;">
+                        <h3 style="color: #fca5a5; font-size: 1.2rem; margin-top: 0; margin-bottom: 1rem;"><i class="fa-solid fa-triangle-exclamation"></i> Logical Violation Detected</h3>
+                        <p style="margin: 0.25rem 0;"><strong style="color: #fff;">Exact Line Number:</strong> <span id="bug-line-no" style="font-family: var(--font-mono); color: #fca5a5; font-weight: bold;">--</span></p>
+                        <p style="margin: 0.25rem 0;"><strong style="color: #fff;">Incorrect Line Snippet:</strong> <br/><code id="bug-line-code" style="display: inline-block; margin-top: 0.5rem; background: rgba(0,0,0,0.5); padding: 0.5rem 1rem; border-radius: 4px; color: #fca5a5; font-size: 1rem;">--</code></p>
                     </div>
 
-                    <!-- 4-panel analysis -->
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:1.5rem;color:#e2e8f0;line-height:1.6;">
-                        <div style="background:rgba(245,158,11,0.05);padding:1.25rem;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;">
-                            <h3 style="color:#fcd34d;font-size:1rem;margin-top:0;">What is wrong</h3>
-                            <p id="bug-what-wrong" style="margin:0;font-size:0.9rem;"></p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; color: #e2e8f0; line-height: 1.6;">
+                        <div style="background: rgba(245, 158, 11, 0.05); padding: 1.5rem; border-left: 4px solid #f59e0b; border-radius: 0 8px 8px 0;">
+                            <h3 style="color: #fcd34d; font-size: 1.1rem; margin-top: 0;">What is wrong</h3>
+                            <p id="bug-what-wrong" style="margin: 0;">--</p>
                         </div>
-                        <div style="background:rgba(245,158,11,0.05);padding:1.25rem;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;">
-                            <h3 style="color:#fcd34d;font-size:1rem;margin-top:0;">Why it is wrong</h3>
-                            <p id="bug-why-wrong" style="margin:0;font-size:0.9rem;"></p>
+                        <div style="background: rgba(245, 158, 11, 0.05); padding: 1.5rem; border-left: 4px solid #f59e0b; border-radius: 0 8px 8px 0;">
+                            <h3 style="color: #fcd34d; font-size: 1.1rem; margin-top: 0;">Why it is wrong</h3>
+                            <p id="bug-why-wrong" style="margin: 0;">--</p>
                         </div>
-                        <div style="background:rgba(16,185,129,0.05);padding:1.25rem;border-left:4px solid var(--accent-green);border-radius:0 8px 8px 0;">
-                            <h3 style="color:#6ee7b7;font-size:1rem;margin-top:0;">How it affects execution</h3>
-                            <p id="bug-how-affects" style="margin:0;font-size:0.9rem;"></p>
+                        <div style="background: rgba(16, 185, 129, 0.05); padding: 1.5rem; border-left: 4px solid var(--accent-green); border-radius: 0 8px 8px 0;">
+                            <h3 style="color: #6ee7b7; font-size: 1.1rem; margin-top: 0;">How the error affects algorithm flow</h3>
+                            <p id="bug-how-affects" style="margin: 0;">--</p>
                         </div>
-                        <div style="background:rgba(59,130,246,0.05);padding:1.25rem;border-left:4px solid #3b82f6;border-radius:0 8px 8px 0;">
-                            <h3 style="color:#93c5fd;font-size:1rem;margin-top:0;">How the correct version behaves</h3>
-                            <p id="bug-how-correct" style="margin:0;font-size:0.9rem;"></p>
+                        <div style="background: rgba(59, 130, 246, 0.05); padding: 1.5rem; border-left: 4px solid #3b82f6; border-radius: 0 8px 8px 0;">
+                            <h3 style="color: #93c5fd; font-size: 1.1rem; margin-top: 0;">How internal correct algorithm behaves</h3>
+                            <p id="bug-how-correct" style="margin: 0;">--</p>
                         </div>
                     </div>
 
-                    <!-- TODO: Add side-by-side animated dual canvas trace here in Phase 2 -->
-
-                    <!-- Corrected Code -->
-                    <div id="bug-corrected-zone" style="background:#0f111a;border:1px solid rgba(16,185,129,0.3);border-radius:12px;overflow:hidden;">
-                        <div style="padding:0.85rem 1.25rem;background:rgba(16,185,129,0.08);border-bottom:1px solid rgba(16,185,129,0.2);display:flex;justify-content:space-between;align-items:center;">
-                            <span style="font-weight:600;color:#6ee7b7;"><i class="fa-solid fa-code"></i> Corrected Implementation</span>
-                            <button id="btn-copy-code" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);padding:0.4rem 0.9rem;color:#fff;border-radius:4px;cursor:pointer;font-size:0.82rem;font-family:var(--font-sans);">
-                                <i class="fa-solid fa-copy"></i> Copy
-                            </button>
-                        </div>
-                        <pre id="bug-corrected-code" style="margin:0;padding:1.25rem;overflow-x:auto;color:#abb2bf;font-family:var(--font-mono);font-size:0.88rem;line-height:1.6;"></pre>
-                    </div>
-
-                    <!-- TODO: Add complexity impact charts (buggy vs fixed) in Phase 2 -->
                 </div>
 
-            </div>
-        </main>
-
-        <!-- ================================================
-             DASHBOARD 3: OPTIMIZE MY CODE
-        ================================================ -->
-        <main id="dashboard-optimize" class="dashboard" style="display:none;height:100%;flex-direction:column;overflow-y:auto;overflow-x:hidden;">
-            <div style="padding:2rem;display:flex;flex-direction:column;gap:2rem;max-width:1300px;margin:0 auto;width:100%;">
-
-                <!-- Header & Algo Select -->
-                <div style="background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:2rem;">
-                    <h2 style="color:var(--accent-green);font-size:1.75rem;margin:0 0 1.25rem;">
-                        <i class="fa-solid fa-gauge-high"></i> Optimizer Engine
-                    </h2>
-
-                    <details class="algo-collapsible" style="width:100%;" open>
-                        <summary class="btn secondary" style="width:100%;justify-content:center;">
-                            <i class="fa-solid fa-list"></i> Choose Algorithm Scenario
-                        </summary>
-                        <div class="collapsible-content" style="background:rgba(0,0,0,0.3);border-radius:8px;padding:0.75rem;margin-top:0.75rem;">
-                            <select id="alg-select-optimize" class="logic-select" size="4">
-                                <optgroup label="Dynamic Programming">
-                                    <option value="dp_fibonacci">Naive Recursion vs DP Memoization</option>
-                                </optgroup>
-                                <optgroup label="Sorting">
-                                    <option value="llx_opt_bubble">Bubble Sort vs Merge Sort</option>
-                                    <option value="llx_opt_selection">Selection Sort vs Quick Sort</option>
-                                </optgroup>
-                                <!-- TODO: Add Dijkstra O(V²) vs O(V+E logV), Insertion vs Heap, Merge vs Counting -->
-                            </select>
-                        </div>
-                    </details>
-
-                    <!-- Algorithm explanation -->
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1.5rem;color:#e2e8f0;line-height:1.6;">
-                        <div style="background:rgba(239,68,68,0.05);padding:1.25rem;border-left:4px solid var(--accent-red);border-radius:0 8px 8px 0;">
-                            <h3 style="color:#fca5a5;font-size:1rem;margin-top:0;">Brute Force</h3>
-                            <p><strong style="color:#fff;">Problem:</strong> <span id="opt-reasoning">Select a scenario above...</span></p>
-                            <p><strong style="color:#fff;">Shortcomings:</strong> <span id="opt-shortcomings"></span></p>
-                        </div>
-                        <div style="background:rgba(16,185,129,0.05);padding:1.25rem;border-left:4px solid var(--accent-green);border-radius:0 8px 8px 0;">
-                            <h3 style="color:#6ee7b7;font-size:1rem;margin-top:0;">Optimized Approach</h3>
-                            <p><strong style="color:#fff;">Technique:</strong> <span id="opt-mechanic"></span></p>
-                            <p><strong style="color:#fff;">Why faster:</strong> <span id="opt-why-faster"></span></p>
-                            <p><strong style="color:#fff;">Complexity shift:</strong> <span id="opt-diff"></span></p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Side-by-Side Code + Counter -->
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(480px,1fr));gap:1.5rem;">
-                    <!-- Brute Force Pane -->
-                    <div style="background:#0f111a;border:1px solid rgba(239,68,68,0.2);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;">
-                        <div style="padding:0.85rem 1.25rem;background:rgba(239,68,68,0.08);border-bottom:1px solid rgba(239,68,68,0.2);display:flex;justify-content:space-between;align-items:center;">
-                            <span style="font-weight:600;color:#fca5a5;">Brute Force</span>
-                            <span id="bg-badge-brute" class="complexity-badge-large">O(...) Time</span>
-                        </div>
-                        <pre id="opt-code-brute" style="flex:1;min-height:180px;margin:0;padding:1.25rem;overflow-x:auto;color:#abb2bf;font-family:var(--font-mono);font-size:0.88rem;line-height:1.5;">Select a scenario to view code.</pre>
-                        <div style="border-top:1px solid rgba(239,68,68,0.2);padding:0.85rem 1.25rem;background:rgba(0,0,0,0.4);">
-                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
-                                <span style="font-size:0.82rem;color:#94a3b8;">Operations (N)</span>
-                                <span id="op-counter-brute" style="color:#fca5a5;font-weight:700;font-family:var(--font-mono);font-size:1.4rem;">0</span>
+                <!-- MIDDLE ROW: ANIMATION STAGE -->
+                <div id="bug-animation-zone" style="display: none; grid-template-columns: 1fr; height: 750px;">
+                    <!-- VISUAL PLAYER -->
+                    <div style="background: #000; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+                        
+                        <!-- Animation Stage (SPLIT IN TWO) -->
+                        <div style="flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; position: relative; background: #0b0f19; padding: 1rem;">
+                            <!-- BUGGY -->
+                            <div style="position: relative; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; background: #000; overflow: hidden;">
+                                <div style="position: absolute; top: 0; left: 0; background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 0.3rem 1rem; font-size: 0.9rem; border-bottom-right-radius: 8px; font-weight: bold; z-index: 10;">Buggy Execution Trace</div>
+                                <div id="analyze-visual-canvas-buggy" style="position: absolute; inset: 0;"></div>
                             </div>
-                            <div id="grid-brute" style="height:80px;overflow-y:auto;display:flex;flex-wrap:wrap;align-content:flex-start;gap:3px;"></div>
-                        </div>
-                    </div>
-
-                    <!-- Optimized Pane -->
-                    <div style="background:#0f111a;border:1px solid rgba(16,185,129,0.2);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;">
-                        <div style="padding:0.85rem 1.25rem;background:rgba(16,185,129,0.08);border-bottom:1px solid rgba(16,185,129,0.2);display:flex;justify-content:space-between;align-items:center;">
-                            <span style="font-weight:600;color:#6ee7b7;">Optimized Version</span>
-                            <span id="bg-badge-opt" class="complexity-badge-large">O(...) Time</span>
-                        </div>
-                        <pre id="opt-code-opt" style="flex:1;min-height:180px;margin:0;padding:1.25rem;overflow-x:auto;color:#abb2bf;font-family:var(--font-mono);font-size:0.88rem;line-height:1.5;">Select a scenario to view code.</pre>
-                        <div style="border-top:1px solid rgba(16,185,129,0.2);padding:0.85rem 1.25rem;background:rgba(0,0,0,0.4);">
-                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
-                                <span style="font-size:0.82rem;color:#94a3b8;">Operations (N)</span>
-                                <span id="op-counter-opt" style="color:#6ee7b7;font-weight:700;font-family:var(--font-mono);font-size:1.4rem;">0</span>
+                            <!-- FIXED -->
+                            <div style="position: relative; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; background: #000; overflow: hidden;">
+                                <div style="position: absolute; top: 0; left: 0; background: rgba(16, 185, 129, 0.2); color: #6ee7b7; padding: 0.3rem 1rem; font-size: 0.9rem; border-bottom-right-radius: 8px; font-weight: bold; z-index: 10;">Corrected Execution Trace</div>
+                                <div id="analyze-visual-canvas-fixed" style="position: absolute; inset: 0;"></div>
                             </div>
-                            <div id="grid-opt" style="height:80px;overflow-y:auto;display:flex;flex-wrap:wrap;align-content:flex-start;gap:3px;"></div>
+                        </div>
+
+                        <!-- Player Timeline & Step log -->
+                        <div style="background: rgba(0,0,0,0.8); border-top: 1px solid rgba(255,255,255,0.1); padding: 1.5rem; display: flex; flex-direction: row; gap: 2rem;">
+                            <!-- Controls -->
+                            <div style="flex: 1; display: flex; flex-direction: column;">
+                                <div class="timeline-track" id="analyze-timeline-track" style="background: rgba(255,255,255,0.1); width: 100%; height: 8px; margin-bottom: 1.5rem; border-radius: 4px; position: relative;">
+                                    <div id="analyze-timeline-progress" style="background: var(--accent-red); height: 100%; width: 0%; border-radius: 4px; transition: width 0.3s; "></div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div id="analyze-explanation" style="color: white; font-size: 1.1rem; flex: 1; margin-right: 1rem; line-height: 1.4;">Awaiting Trace Execution...</div>
+                                    <button class="control-btn primary-control" id="btn-play-analyze" title="Play/Pause" style="width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,51,102,0.2); border: 1px solid var(--accent-red); color: var(--accent-red); cursor: pointer; transition: 0.3s; flex-shrink: 0;">
+                                        <i class="fa-solid fa-play" id="play-icon-analyze"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Step log explicitly appended -->
+                            <div style="width: 350px; max-height: 120px; overflow-y: auto; background: rgba(255,255,255,0.02); border-left: 1px solid rgba(255,255,255,0.1); padding-left: 1rem; font-size: 0.95rem; color: #94a3b8; display: flex; flex-direction: column; gap: 0.5rem;" id="analyze-step-log">
+                                <div><strong style="color: white; font-size: 1rem;">Timeline Step-by-Step Breakdown:</strong></div>
+                                <!-- Steps mount here dynamically -> "At step 3, index becomes -1" -->
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- N Slider + Verdict -->
-                <div style="background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:2rem;display:flex;flex-direction:column;gap:1.25rem;">
-                    <div style="display:flex;align-items:center;gap:1.5rem;">
-                        <span style="color:var(--text-muted);font-size:0.9rem;font-weight:600;text-transform:uppercase;flex:0 0 130px;">Input Size (N)</span>
-                        <input type="range" id="optimize-n-slider" min="1" max="50" value="10" style="flex:1;accent-color:var(--accent-green);height:5px;">
-                        <span id="optimize-n-val" style="color:white;font-family:var(--font-mono);font-weight:700;font-size:1.6rem;min-width:48px;text-align:right;">10</span>
+                <!-- CORRECTED STATIC CODE BLOCK -->
+                <div id="bug-corrected-zone" style="display: none; background: #0f111a; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;">
+                    <div style="padding: 1rem 1.5rem; background: rgba(16, 185, 129, 0.1); border-bottom: 1px solid rgba(16, 185, 129, 0.2); display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 600; color: #6ee7b7;"><i class="fa-solid fa-code"></i> Internal Corrected Implementation</span>
+                        <button id="btn-copy-code" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 0.5rem 1rem; color: #fff; border-radius: 4px; cursor: pointer; font-size: 0.85rem;"><i class="fa-solid fa-copy"></i> Copy Code</button>
                     </div>
-
-                    <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:8px;padding:1.25rem;display:flex;align-items:center;justify-content:center;gap:2rem;">
-                        <span style="font-size:0.9rem;text-transform:uppercase;color:#6ee7b7;letter-spacing:1px;font-weight:600;">Speedup Multiplier</span>
-                        <span id="speedup-multiplier" style="font-size:2.75rem;font-family:var(--font-mono);font-weight:700;color:white;">--</span>
-                        <div style="max-width:400px;">
-                            <span style="color:#e2e8f0;font-weight:600;">At N = <span id="speedup-n-label">10</span></span><br>
-                            <span style="font-size:0.85rem;color:var(--text-muted);">The optimized approach uses mathematically fewer operations.</span>
-                        </div>
-                    </div>
+                    <pre id="bug-corrected-code" style="flex: 1; min-height: 200px; margin: 0; padding: 1.5rem; overflow-x: auto; color: #abb2bf; font-family: var(--font-mono); font-size: 0.95rem; line-height: 1.5;">--</pre>
                 </div>
 
-                <!-- Dual Charts -->
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(460px,1fr));gap:1.5rem;">
-                    <div style="background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1.5rem;display:flex;flex-direction:column;">
-                        <h3 style="color:#f8fafc;font-size:1.1rem;margin:0 0 1rem;text-align:center;">Time Complexity (Operations)</h3>
-                        <div style="flex:1;min-height:300px;position:relative;">
-                            <canvas id="optimize-time-chart"></canvas>
+                <!-- BOTTOM ROW: POST-FIX COMPLEXITY IMPACT (Dual Charts) -->
+                <div id="analyze-complexity-zone" style="display: none; background: rgba(0,0,0,0.4); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 2rem; flex-direction: column;">
+                    <h2 style="color: #6ee7b7; font-size: 1.5rem; margin-top: 0; margin-bottom: 2rem; text-align: center;"><i class="fa-solid fa-chart-line"></i> Post-Fix Reliability Impact</h2>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 2rem;">
+                        <!-- Buggy vs Fixed Time Chart -->
+                        <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column;">
+                            <h3 style="color: #f8fafc; font-size: 1.1rem; margin-top: 0; margin-bottom: 1rem; text-align: center;">Time Complexity (Operations)</h3>
+                            <div style="flex: 1; min-height: 350px; position: relative;">
+                                <canvas id="analyze-time-chart" style="width: 100% !important; height: 100% !important;"></canvas>
+                            </div>
                         </div>
-                    </div>
-                    <div style="background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:1.5rem;display:flex;flex-direction:column;">
-                        <h3 style="color:#f8fafc;font-size:1.1rem;margin:0 0 1rem;text-align:center;">Space Complexity (Memory)</h3>
-                        <div style="flex:1;min-height:300px;position:relative;">
-                            <canvas id="optimize-space-chart"></canvas>
+                        <!-- Buggy vs Fixed Space Chart -->
+                        <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column;">
+                            <h3 style="color: #f8fafc; font-size: 1.1rem; margin-top: 0; margin-bottom: 1rem; text-align: center;">Space Complexity (Memory Limits)</h3>
+                            <div style="flex: 1; min-height: 350px; position: relative;">
+                                <canvas id="analyze-space-chart" style="width: 100% !important; height: 100% !important;"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
 
             </div>
         </main>
+        
+        <!-- Dashboard Optimize Race -->
+        <main id="dashboard-optimize" class="dashboard" style="display: none; height: 100%; flex-direction: column; overflow-y: auto; overflow-x: hidden;">
+            <div style="padding: 2rem; display: flex; flex-direction: column; gap: 2rem; max-width: 1400px; margin: 0 auto; width: 100%;">
+                
+                <!-- HEADER & EXPLANATION -->
+                <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; flex-direction: column; width: 100%; gap: 1rem;">
+                        <h2 style="color: var(--accent-green); font-size: 2rem; margin: 0;"><i class="fa-solid fa-gauge-high"></i> Optimizer Engine</h2>
+                        
+                        <details class="algo-collapsible" style="width: 100%;">
+                            <summary class="collapsible-trigger btn secondary" style="width: 100%; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; outline: none; cursor: pointer;"><i class="fa-solid fa-list"></i> Show Algorithm Scenarios</summary>
+                            <div class="collapsible-content" style="margin-top: 1rem; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 1rem;">
+                                <select id="alg-select-optimize" class="logic-select" size="6" style="width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; padding: 0.5rem; border-radius: 4px; outline: none; font-family: var(--font-mono); font-size: 0.95rem;">
+                                    <optgroup label="Core Showcases">
+                                        <option value="dp_fibonacci">Naive Recursion vs DP Memoization</option>
+                                        <option value="dijkstra_path">Dijkstra O(V²) vs O(V+E log V)</option>
+                                    </optgroup>
+                                    <optgroup label="Sorting Showcases">
+                                        <option value="llx_opt_bubble">Bubble Sort vs Merge Sort</option>
+                                        <option value="llx_opt_selection">Selection Sort vs Quick Sort</option>
+                                        <option value="llx_opt_insertion">Insertion Sort vs Heap Sort</option>
+                                        <option value="llx_opt_counting">Merge Sort vs Counting Sort</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                        </details>
+                    </div>
 
-    </div><!-- end #views-container -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; color: #e2e8f0; line-height: 1.6;">
+                        <div style="background: rgba(239, 68, 68, 0.05); padding: 1.5rem; border-left: 4px solid var(--accent-red); border-radius: 0 8px 8px 0;">
+                            <h3 style="color: #fca5a5; font-size: 1.2rem; margin-top: 0;">Brute Force Approach</h3>
+                            <p><strong style="color: #fff;">Reasoning:</strong> <span id="opt-reasoning">Awaiting selection...</span></p>
+                            <p><strong style="color: #fff;">Shortcomings:</strong> <span id="opt-shortcomings">Awaiting selection...</span></p>
+                        </div>
+                        <div style="background: rgba(16, 185, 129, 0.05); padding: 1.5rem; border-left: 4px solid var(--accent-green); border-radius: 0 8px 8px 0;">
+                            <h3 style="color: #6ee7b7; font-size: 1.2rem; margin-top: 0;">Optimization Applied</h3>
+                            <p><strong style="color: #fff;">Mechanic:</strong> <span id="opt-mechanic">Awaiting selection...</span></p>
+                            <p><strong style="color: #fff;">Why it's faster:</strong> <span id="opt-why-faster">Awaiting selection...</span></p>
+                            <p><strong style="color: #fff;">Complexity Shift:</strong> <span id="opt-diff">Awaiting selection...</span></p>
+                        </div>
+                    </div>
+                </div>
 
-    <!-- Scripts -->
+                <!-- SIDE-BY-SIDE CODE & ANIMATION -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 2rem;">
+                    <!-- BRUTE FORCE PANE -->
+                    <div style="background: #0f111a; border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;">
+                        <div style="background: rgba(239, 68, 68, 0.1); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(239, 68, 68, 0.2);">
+                            <span style="font-weight: 600; color: #fca5a5;">Brute Force Source Code</span>
+                            <span id="bg-badge-brute" class="complexity-badge-large badge-on2">O(...) Time</span>
+                        </div>
+                        <pre style="flex: 1; min-height: 250px; margin: 0; padding: 1.5rem; overflow-x: auto; color: #abb2bf; font-family: var(--font-mono); font-size: 0.95rem; line-height: 1.5;" id="opt-code-brute">Select an algorithm to view.</pre>
+                        
+                        <!-- Brute Force Animation Grid -->
+                        <div style="border-top: 1px solid rgba(239, 68, 68, 0.2); padding: 1rem 1.5rem; background: rgba(0,0,0,0.5);">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; color: #94a3b8;">Execution Trace (Ops)</span>
+                                <span id="op-counter-brute" style="color: #fca5a5; font-weight: 700; font-family: var(--font-mono); font-size: 1.5rem;">0</span>
+                            </div>
+                            <div id="grid-brute" style="height: 100px; overflow-y: auto; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 4px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- OPTIMIZED PANE -->
+                    <div style="background: #0f111a; border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;">
+                        <div style="background: rgba(16, 185, 129, 0.1); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(16, 185, 129, 0.2);">
+                            <span style="font-weight: 600; color: #6ee7b7;">Optimized Source Code</span>
+                            <span id="bg-badge-opt" class="complexity-badge-large badge-o1">O(...) Time</span>
+                        </div>
+                        <pre style="flex: 1; min-height: 250px; margin: 0; padding: 1.5rem; overflow-x: auto; color: #abb2bf; font-family: var(--font-mono); font-size: 0.95rem; line-height: 1.5;" id="opt-code-opt">Select an algorithm to view.</pre>
+                        
+                        <!-- Optimized Animation Grid -->
+                        <div style="border-top: 1px solid rgba(16, 185, 129, 0.2); padding: 1rem 1.5rem; background: rgba(0,0,0,0.5);">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; color: #94a3b8;">Execution Trace (Ops)</span>
+                                <span id="op-counter-opt" style="color: #6ee7b7; font-weight: 700; font-family: var(--font-mono); font-size: 1.5rem;">0</span>
+                            </div>
+                            <div id="grid-opt" style="height: 100px; overflow-y: auto; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 4px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTROLS & VERDICT -->
+                <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div style="display: flex; align-items: center; gap: 2rem;">
+                        <span style="color: var(--text-muted); font-size: 1rem; text-transform: uppercase; font-weight: 600; flex: 0 0 150px;">Input Size (N)</span>
+                        <input type="range" id="optimize-n-slider" min="1" max="100" value="10" style="flex: 1; accent-color: var(--accent-green); height: 6px;">
+                        <span id="optimize-n-val" style="color: white; font-family: var(--font-mono); font-weight: 700; font-size: 1.75rem; width: 60px; text-align: right;">10</span>
+                    </div>
+                    
+                    <div class="verdict-card" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 1.5rem; display: flex; align-items: center; justify-content: center; gap: 2rem;">
+                        <span style="font-size: 1rem; text-transform: uppercase; color: #6ee7b7; letter-spacing: 1px; font-weight: 600;">Mathematical Speedup Multiplier</span>
+                        <span id="speedup-multiplier" style="font-size: 3rem; font-family: var(--font-mono); font-weight: 700; color: white;">--</span>
+                        <div style="display: flex; flex-direction: column; max-width: 500px;">
+                            <span style="color: #e2e8f0; font-weight: 600;">Performance Verdict (<span id="speedup-n-label">10</span>)</span>
+                            <span style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.5;">At this N, the optimized approach mathematically diverges from the brute force curve exponentially, rescuing immense CPU cycles.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DUAL COMPLEXITY CHARTS -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 2rem;">
+                    <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 2rem; display: flex; flex-direction: column;">
+                        <h3 style="color: #f8fafc; font-size: 1.25rem; margin-top: 0; margin-bottom: 1.5rem; text-align: center;">Time Complexity (Operations)</h3>
+                        <div style="flex: 1; min-height: 350px; position: relative; width: 100%;">
+                            <canvas id="optimize-time-chart" style="width: 100% !important; height: 100% !important;"></canvas>
+                        </div>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 2rem; display: flex; flex-direction: column;">
+                        <h3 style="color: #f8fafc; font-size: 1.25rem; margin-top: 0; margin-bottom: 1.5rem; text-align: center;">Space Complexity (Memory)</h3>
+                        <div style="flex: 1; min-height: 350px; position: relative; width: 100%;">
+                            <canvas id="optimize-space-chart" style="width: 100% !important; height: 100% !important;"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div> <!-- End Views Container -->
+      </div> <!-- End Barba Container -->
+    </div> <!-- End Barba Wrapper -->
+
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js"></script>
+    <script type="module">
+        import { animate, inView, stagger, spring } from "https://cdn.jsdelivr.net/npm/motion@10.16.2/+esm";
+        
+        // Typing Effect Initialization
+        new Typed('.typing-text', {
+            strings: ['Logic.', 'Algorithms.', 'Data Structures.', 'Mechanics.'],
+            typeSpeed: 50,
+            backSpeed: 30,
+            backDelay: 1500,
+            loop: true,
+            cursorChar: '|',
+            autoInsertCss: true
+        });
+
+        // Framer Motion (Motion One) Scroll Animations
+        animate(".hero-title", { opacity: [0, 1], y: [50, 0] }, { duration: 0.8, easing: "ease-out" });
+        animate(".hero-subtitle", { opacity: [0, 1], y: [30, 0] }, { duration: 0.8, delay: 0.2, easing: "ease-out" });
+        animate(".hero-btn", { opacity: [0, 1], scale: [0.9, 1] }, { duration: 0.5, delay: stagger(0.1, { start: 0.4 }), easing: spring() });
+
+        inView(".dashboard", ({ target }) => {
+            animate(target, { opacity: [0, 1], y: [50, 0] }, { duration: 0.8, easing: "ease-out" });
+        });
+
+        inView(".projects-title", ({ target }) => {
+            animate(target, { opacity: [0, 1], y: [30, 0] }, { duration: 0.6, easing: "ease-out" });
+        });
+        
+        inView(".projects-subtitle", ({ target }) => {
+            animate(target, { opacity: [0, 1], y: [30, 0] }, { duration: 0.6, delay: 0.1, easing: "ease-out" });
+        });
+
+        inView(".project-card", (info) => {
+            animate(info.target, { opacity: [0, 1], y: [50, 0] }, { duration: 0.8, easing: "ease-out" });
+        });
+    </script>
     <script src="navigation.js"></script>
+    <!-- Traces - Legacy -->
+    <script src="traces/bst.js"></script>
+    <script src="traces/dijkstra.js"></script>
+    <script src="traces/quicksort.js"></script>
+    <script src="traces/dfs_buggy.js"></script>
+    <script src="traces/bfs_optimal.js"></script>
+    <script src="traces/bubblesort_bug.js"></script>
+    <script src="traces/dp_fib.js"></script>
+    <!-- Traces - Logic Lens Expansion -->
+    <script src="traces/llx_mergesort.js"></script>
+    <script src="traces/llx_quicksort.js"></script>
+    <script src="traces/llx_heapsort.js"></script>
+    <script src="traces/llx_selectionsort.js"></script>
+    <script src="traces/llx_insertionsort.js"></script>
+    <script src="traces/llx_bubblesort.js"></script>
+    <script src="traces/llx_countingsort.js"></script>
+    <script src="traces/llx_radixsort.js"></script>
+    <script src="traces/llx_bucketsort.js"></script>
+    
     <script src="analyzeBug.js"></script>
     <script src="optimizeCode.js"></script>
     <script src="app.js"></script>
-
 </body>
+
 </html>
